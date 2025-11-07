@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #eee;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .expense-title {
+      font-weight: bold;
+      color: #333;
+    }
+    .expense-details {
+      font-size: 14px;
+      color: #555;
+    }
+    .total {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 15px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>💰 Expense Tracker</h2>
+    <form id="expense-form">
+      <input type="text" id="expense-name" placeholder="Expense name" required>
+      <input type="text" id="expense-description" placeholder="Description (optional)">
+      <input type="number" id="expense-amount" placeholder="Amount (₹)" required>
+      <input type="date" id="expense-date" required>
+      <button type="submit">Add Expense</button>
+    </form>
+
+    <ul id="expense-list"></ul>
+
+    <div class="total">
+      Total: ₹<span id="total">0</span>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('expense-form');
+    const nameInput = document.getElementById('expense-name');
+    const descInput = document.getElementById('expense-description');
+    const amountInput = document.getElementById('expense-amount');
+    const dateInput = document.getElementById('expense-date');
+    const expenseList = document.getElementById('expense-list');
+    const totalEl = document.getElementById('total');
+
+    let total = 0;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = nameInput.value;
+      const desc = descInput.value || "No description";
+      const amount = parseFloat(amountInput.value);
+      const date = dateInput.value;
+
+      if (!name || isNaN(amount) || amount <= 0 || !date) {
+        alert("Please enter valid details!");
+        return;
+      }
+
+      // Add to list
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="expense-title">${name} - ₹${amount}</div>
+        <div class="expense-details">${desc}</div>
+        <div class="expense-details">📅 ${date}</div>
+      `;
+      expenseList.appendChild(li);
+
+      // Update total
+      total += amount;
+      totalEl.textContent = total;
+
+      // Clear inputs
+      nameInput.value = "";
+      descInput.value = "";
+      amountInput.value = "";
+      dateInput.value = "";
+    });
+  </script>
+</body>
+</html>

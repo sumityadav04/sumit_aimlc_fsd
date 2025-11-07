@@ -1,0 +1,806 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  PawPrint,
+  Bone,
+  Bird,
+  Cat,
+  Dog,
+  Heart,
+  MapPin,
+  Calendar,
+  Phone,
+  Mail,
+  Filter,
+  X,
+  Search,
+  ChevronRight,
+  Plus,
+  CheckCircle2,
+  Info,
+} from "lucide-react";
+
+// --- Helpers ---
+const cls = (...a) => a.filter(Boolean).join(" ");
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+const speciesIcons = {
+  Dog: Dog,
+  Cat: Cat,
+  Bird: Bird,
+  Other: PawPrint,
+};
+
+const defaultPets = [
+  {
+    id: uid(),
+    name: "Bruno",
+    species: "Dog",
+    breed: "Labrador Retriever",
+    gender: "Male",
+    age: 2,
+    vaccinated: true,
+    city: "Noida",
+    image:
+      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1200&auto=format&fit=crop",
+    description:
+      "Playful Lab who loves fetch and belly rubs. Great with families and kids.",
+  },
+  {
+    id: uid(),
+    name: "Mittens",
+    species: "Cat",
+    breed: "Indian Shorthair",
+    gender: "Female",
+    age: 1,
+    vaccinated: true,
+    city: "Ghaziabad",
+    image:
+      "https://images.unsplash.com/photo-1511044568932-338cba0ad803?q=80&w=1200&auto=format&fit=crop",
+    description:
+      "Calm, cuddly, and independent. Litter-trained and good with quiet homes.",
+  },
+  {
+    id: uid(),
+    name: "Rio",
+    species: "Bird",
+    breed: "Budgerigar",
+    gender: "Male",
+    age: 3,
+    vaccinated: false,
+    city: "Greater Noida",
+    image:
+      "https://images.unsplash.com/photo-1574169207511-e21a21c8075a?q=80&w=1200&auto=format&fit=crop",
+    description: "Talkative budgie who enjoys music and fresh millet.",
+  },
+  {
+    id: uid(),
+    name: "Ginger",
+    species: "Dog",
+    breed: "Indie (Desi)",
+    gender: "Female",
+    age: 4,
+    vaccinated: true,
+    city: "Delhi",
+    image:
+      "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200&auto=format&fit=crop",
+    description: "Smart, loyal Indie. House-trained and very gentle.",
+  },
+  {
+    id: uid(),
+    name: "Shadow",
+    species: "Cat",
+    breed: "Persian Mix",
+    gender: "Male",
+    age: 2,
+    vaccinated: true,
+    city: "Noida",
+    image:
+      "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=1200&auto=format&fit=crop",
+    description: "Quiet lap-cat. Loves windowsills and gentle brushing.",
+  },
+  {
+    id: uid(),
+    name: "Coco",
+    species: "Other",
+    breed: "Rabbit",
+    gender: "Female",
+    age: 1,
+    vaccinated: false,
+    city: "Ghaziabad",
+    image:
+      "https://images.unsplash.com/photo-1548767797-d8c844163c4c?q=80&w=1200&auto=format&fit=crop",
+    description: "Soft bunny who enjoys carrots and quiet corners.",
+  },
+];
+
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const load = (k, f) => {
+  try {
+    const x = JSON.parse(localStorage.getItem(k) || "null");
+    return x ?? f;
+  } catch {
+    return f;
+  }
+};
+
+function Badge({ children, className }) {
+  return (
+    <span className={cls("px-2 py-1 rounded-full text-xs border", className)}>
+      {children}
+    </span>
+  );
+}
+
+function Button({ children, className, icon: Icon, ...rest }) {
+  return (
+    <button
+      {...rest}
+      className={cls(
+        "inline-flex items-center gap-2 px-4 py-2 rounded-2xl shadow-sm border transition active:scale-[.99]",
+        "bg-white hover:bg-gray-50",
+        className
+      )}
+    >
+      {Icon && <Icon size={16} />}
+      <span>{children}</span>
+    </button>
+  );
+}
+
+function Section({ title, subtitle, children, action }) {
+  return (
+    <section className="max-w-6xl mx-auto px-4 py-8">
+      <div className="flex items-end justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>
+          {subtitle && (
+            <p className="text-gray-600 mt-1 text-sm md:text-base">{subtitle}</p>
+          )}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Header({ current, setCurrent }) {
+  const tabs = [
+    { key: "home", label: "Home" },
+    { key: "adopt", label: "Adopt" },
+    { key: "services", label: "Services" },
+    { key: "blog", label: "Blog" },
+    { key: "contact", label: "Contact" },
+    { key: "admin", label: "Admin" },
+  ];
+  return (
+    <header className="sticky top-0 z-30 w-full backdrop-blur supports-[backdrop-filter]:bg-white/70 border-b">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
+        <PawPrint className="text-pink-600" />
+        <div className="font-bold tracking-tight">The Pet Cure</div>
+        <nav className="ml-auto hidden md:flex gap-1">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setCurrent(t.key)}
+              className={cls(
+                "px-3 py-2 rounded-xl text-sm",
+                current === t.key ? "bg-pink-600 text-white" : "hover:bg-gray-100"
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        <div className="md:hidden ml-auto">
+          <select
+            className="border rounded-xl px-3 py-2"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+          >
+            {tabs.map((t) => (
+              <option key={t.key} value={t.key}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Hero({ goAdopt }) {
+  return (
+    <div className="relative overflow-hidden">
+      <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center py-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+            Find your new <span className="text-pink-600">best friend</span>
+          </h1>
+          <p className="text-gray-600 mt-4">
+            Adopt, book vet & grooming services, and learn pet care—all in one
+            place.
+          </p>
+          <div className="flex gap-3 mt-6">
+            <Button className="bg-pink-600 text-white hover:bg-pink-700" icon={Heart} onClick={goAdopt}>
+              Explore pets
+            </Button>
+            <Button icon={Phone} onClick={() => (window.location.href = "tel:+91-9876543210")}>Call us</Button>
+          </div>
+        </motion.div>
+        <motion.img
+          initial={{ scale: 1.05, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          src="https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?q=80&w=1600&auto=format&fit=crop"
+          alt="Happy pets"
+          className="rounded-3xl shadow-lg border"
+        />
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, Icon }) {
+  return (
+    <div className="p-5 rounded-2xl border bg-white shadow-sm flex items-center gap-3">
+      <div className="p-2 rounded-xl bg-pink-50 border">
+        <Icon className="text-pink-600" size={20} />
+      </div>
+      <div>
+        <div className="text-sm text-gray-500">{label}</div>
+        <div className="text-xl font-semibold">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function PetCard({ pet, onOpen, toggleFav, isFav }) {
+  const Icon = speciesIcons[pet.species] || PawPrint;
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl overflow-hidden border bg-white shadow-sm"
+    >
+      <div className="relative">
+        <img src={pet.image} alt={pet.name} className="h-48 w-full object-cover" />
+        <button
+          onClick={() => toggleFav(pet.id)}
+          className={cls(
+            "absolute top-3 right-3 p-2 rounded-full bg-white/90 border backdrop-blur",
+            isFav ? "text-pink-600" : "text-gray-600 hover:text-pink-600"
+          )}
+          title={isFav ? "Remove favorite" : "Add favorite"}
+        >
+          <Heart size={18} fill={isFav ? "currentColor" : "none"} />
+        </button>
+      </div>
+      <div className="p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <Icon size={18} className="text-pink-600" /> {pet.name}
+          </h3>
+          <Badge className="border-pink-200 text-pink-700">{pet.species}</Badge>
+        </div>
+        <div className="text-sm text-gray-600 mt-2 flex flex-wrap gap-2">
+          <Badge>{pet.breed}</Badge>
+          <Badge>{pet.gender}</Badge>
+          <Badge>{pet.age} yr</Badge>
+          <Badge className={pet.vaccinated ? "border-green-300 text-green-700" : "border-amber-300 text-amber-700"}>
+            {pet.vaccinated ? "Vaccinated" : "Not vaccinated"}
+          </Badge>
+        </div>
+        <div className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+          <MapPin size={16} /> {pet.city}
+        </div>
+        <div className="mt-3 flex gap-2">
+          <Button className="flex-1" icon={Info} onClick={() => onOpen(pet)}>
+            Details
+          </Button>
+          <Button className="flex-1 bg-pink-600 text-white hover:bg-pink-700" icon={Calendar} onClick={() => onOpen(pet, true)}>
+            Appointment
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function Modal({ open, onClose, children }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-50 grid place-items-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            className="relative w-full max-w-2xl rounded-2xl bg-white border shadow-xl"
+          >
+            <button className="absolute top-3 right-3 p-2 rounded-full border bg-white" onClick={onClose}>
+              <X size={18} />
+            </button>
+            <div className="p-5">{children}</div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Toast({ show, text }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 20, opacity: 0 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black text-white px-4 py-2 rounded-xl shadow-lg"
+        >
+          {text}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Filters({ filters, setFilters, total, reset }) {
+  const set = (k, v) => setFilters((f) => ({ ...f, [k]: v }));
+  return (
+    <div className="rounded-2xl border bg-white shadow-sm p-4">
+      <div className="flex items-center gap-2 mb-2 text-sm text-gray-700">
+        <Filter size={16} /> Filters
+        <span className="ml-auto text-gray-500">{total} results</span>
+      </div>
+      <div className="grid md:grid-cols-5 gap-3">
+        <input
+          placeholder="Search by name, breed…"
+          className="border rounded-xl px-3 py-2 md:col-span-2"
+          value={filters.q}
+          onChange={(e) => set("q", e.target.value)}
+        />
+        <select className="border rounded-xl px-3 py-2" value={filters.species} onChange={(e) => set("species", e.target.value)}>
+          <option value="">All species</option>
+          {["Dog", "Cat", "Bird", "Other"].map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <select className="border rounded-xl px-3 py-2" value={filters.city} onChange={(e) => set("city", e.target.value)}>
+          <option value="">All cities</option>
+          {["Noida", "Ghaziabad", "Greater Noida", "Delhi"].map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <select className="border rounded-xl px-3 py-2" value={filters.gender} onChange={(e) => set("gender", e.target.value)}>
+          <option value="">Any gender</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+        <select className="border rounded-xl px-3 py-2" value={filters.vaccinated} onChange={(e) => set("vaccinated", e.target.value)}>
+          <option value="">Vaccination: Any</option>
+          <option value="true">Vaccinated</option>
+          <option value="false">Not vaccinated</option>
+        </select>
+        <select className="border rounded-xl px-3 py-2" value={filters.sort} onChange={(e) => set("sort", e.target.value)}>
+          <option value="name">Sort: Name</option>
+          <option value="age">Sort: Age</option>
+          <option value="city">Sort: City</option>
+        </select>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            placeholder="Min age"
+            className="border rounded-xl px-3 py-2 w-full"
+            value={filters.ageMin}
+            onChange={(e) => set("ageMin", e.target.value)}
+          />
+          <input
+            type="number"
+            min={0}
+            placeholder="Max age"
+            className="border rounded-xl px-3 py-2 w-full"
+            value={filters.ageMax}
+            onChange={(e) => set("ageMax", e.target.value)}
+          />
+        </div>
+        <div className="md:col-span-2 flex gap-2">
+          <Button className="flex-1" icon={Search} onClick={() => {}}>
+            Apply
+          </Button>
+          <Button className="flex-1" onClick={reset}>Reset</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Contact() {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [ok, setOk] = useState(false);
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.message) return alert("Please fill required fields");
+    setOk(true);
+    setTimeout(() => setOk(false), 2500);
+  };
+  return (
+    <Section title="Contact us" subtitle="We usually respond within 24 hours.">
+      <div className="grid md:grid-cols-2 gap-6">
+        <form onSubmit={submit} className="rounded-2xl border p-4 bg-white shadow-sm">
+          <div className="grid gap-3">
+            <input className="border rounded-xl px-3 py-2" placeholder="Name*" value={form.name} onChange={(e) => set("name", e.target.value)} />
+            <input className="border rounded-xl px-3 py-2" placeholder="Email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+            <input className="border rounded-xl px-3 py-2" placeholder="Phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+            <textarea className="border rounded-xl px-3 py-2" rows={5} placeholder="Message*" value={form.message} onChange={(e) => set("message", e.target.value)} />
+            <Button className="bg-pink-600 text-white hover:bg-pink-700" icon={Mail}>
+              Send message
+            </Button>
+          </div>
+        </form>
+        <div className="rounded-2xl border p-4 bg-white shadow-sm">
+          <h3 className="font-semibold text-lg">Reach us</h3>
+          <div className="mt-3 space-y-2 text-sm text-gray-700">
+            <div className="flex items-center gap-2"><Phone size={16} /> +91 98765 43210</div>
+            <div className="flex items-center gap-2"><Mail size={16} /> hello@thepetcure.in</div>
+            <div className="flex items-center gap-2"><MapPin size={16} /> Sector 62, Noida, UP</div>
+          </div>
+          <div className="mt-6 p-3 rounded-xl border bg-gray-50 text-sm">
+            WhatsApp quick help: <a className="text-pink-700 underline" href="https://wa.me/919876543210" target="_blank" rel="noreferrer">Chat now</a>
+          </div>
+          {ok && (
+            <div className="mt-4 text-green-700 flex items-center gap-2 text-sm">
+              <CheckCircle2 size={16} /> Message sent! We'll get back shortly.
+            </div>
+          )}
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function Services() {
+  const items = [
+    { icon: Bone, title: "Grooming", text: "Bath, trim, nails, spa packages." },
+    { icon: Calendar, title: "Vet Appointment", text: "Consultation & vaccinations." },
+    { icon: PawPrint, title: "Training", text: "Basic obedience & behavior." },
+  ];
+  return (
+    <Section title="Our services" subtitle="Care tailored for every pet.">
+      <div className="grid md:grid-cols-3 gap-4">
+        {items.map((it) => (
+          <div key={it.title} className="p-5 rounded-2xl border bg-white shadow-sm">
+            <it.icon className="text-pink-600" />
+            <h3 className="font-semibold mt-3">{it.title}</h3>
+            <p className="text-sm text-gray-600 mt-1">{it.text}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function Blog() {
+  const posts = [
+    {
+      id: 1,
+      title: "First-time Dog Adoption Guide",
+      excerpt: "Everything you need before bringing a pup home.",
+      image:
+        "https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1200&auto=format&fit=crop",
+    },
+    {
+      id: 2,
+      title: "How to Litter Train a Cat",
+      excerpt: "Simple steps for a clean, happy cat.",
+      image:
+        "https://images.unsplash.com/photo-1494253109108-2e30c049369b?q=80&w=1200&auto=format&fit=crop",
+    },
+    {
+      id: 3,
+      title: "Safe Fruits & Veggies for Birds",
+      excerpt: "A quick checklist for parrot parents.",
+      image:
+        "https://images.unsplash.com/photo-1555617981-dac3880f6ef3?q=80&w=1200&auto=format&fit=crop",
+    },
+  ];
+  return (
+    <Section title="Latest from the blog" subtitle="Quick reads for smarter pet care.">
+      <div className="grid md:grid-cols-3 gap-4">
+        {posts.map((p) => (
+          <div key={p.id} className="rounded-2xl overflow-hidden border bg-white shadow-sm">
+            <img src={p.image} className="h-40 w-full object-cover" />
+            <div className="p-4">
+              <h3 className="font-semibold">{p.title}</h3>
+              <p className="text-sm text-gray-600 mt-1">{p.excerpt}</p>
+              <button className="text-pink-700 text-sm mt-2 inline-flex items-center gap-1">
+                Read more <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function Admin({ addPet }) {
+  const [pet, setPet] = useState({
+    name: "",
+    species: "Dog",
+    breed: "",
+    gender: "Male",
+    age: 1,
+    vaccinated: true,
+    city: "Noida",
+    image: "",
+    description: "",
+  });
+  const set = (k, v) => setPet((p) => ({ ...p, [k]: v }));
+  const submit = (e) => {
+    e.preventDefault();
+    if (!pet.name || !pet.breed || !pet.description) return alert("Please fill all required fields");
+    addPet({ ...pet, id: uid(), image: pet.image || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1200&auto=format&fit=crop" });
+    setPet({ name: "", species: "Dog", breed: "", gender: "Male", age: 1, vaccinated: true, city: "Noida", image: "", description: "" });
+  };
+  return (
+    <Section title="Admin" subtitle="Add new pets to the listing.">
+      <form onSubmit={submit} className="grid md:grid-cols-3 gap-4 p-4 rounded-2xl border bg-white shadow-sm">
+        <input className="border rounded-xl px-3 py-2" placeholder="Name*" value={pet.name} onChange={(e) => set("name", e.target.value)} />
+        <select className="border rounded-xl px-3 py-2" value={pet.species} onChange={(e) => set("species", e.target.value)}>
+          {Object.keys(speciesIcons).map((s) => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+        <input className="border rounded-xl px-3 py-2" placeholder="Breed*" value={pet.breed} onChange={(e) => set("breed", e.target.value)} />
+        <select className="border rounded-xl px-3 py-2" value={pet.gender} onChange={(e) => set("gender", e.target.value)}>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+        <input type="number" min={0} className="border rounded-xl px-3 py-2" placeholder="Age (years)" value={pet.age} onChange={(e) => set("age", Number(e.target.value))} />
+        <select className="border rounded-xl px-3 py-2" value={pet.vaccinated} onChange={(e) => set("vaccinated", e.target.value === "true") }>
+          <option value="true">Vaccinated</option>
+          <option value="false">Not vaccinated</option>
+        </select>
+        <input className="border rounded-xl px-3 py-2" placeholder="City" value={pet.city} onChange={(e) => set("city", e.target.value)} />
+        <input className="border rounded-xl px-3 py-2 md:col-span-2" placeholder="Image URL (optional)" value={pet.image} onChange={(e) => set("image", e.target.value)} />
+        <textarea rows={3} className="border rounded-xl px-3 py-2 md:col-span-3" placeholder="Description*" value={pet.description} onChange={(e) => set("description", e.target.value)} />
+        <div className="md:col-span-3 flex justify-end">
+          <Button className="bg-pink-600 text-white hover:bg-pink-700" icon={Plus}>
+            Add Pet
+          </Button>
+        </div>
+      </form>
+    </Section>
+  );
+}
+
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [pets, setPets] = useState(() => load("tpc:pets", defaultPets));
+  const [fav, setFav] = useState(() => load("tpc:fav", []));
+  const [appt, setAppt] = useState(() => load("tpc:appointments", []));
+  const [detail, setDetail] = useState(null);
+  const [openAppt, setOpenAppt] = useState(false);
+  const [toast, setToast] = useState("");
+
+  useEffect(() => save("tpc:pets", pets), [pets]);
+  useEffect(() => save("tpc:fav", fav), [fav]);
+  useEffect(() => save("tpc:appointments", appt), [appt]);
+
+  const [filters, setFilters] = useState({
+    q: "",
+    species: "",
+    city: "",
+    gender: "",
+    vaccinated: "",
+    ageMin: "",
+    ageMax: "",
+    sort: "name",
+  });
+
+  const resetFilters = () =>
+    setFilters({ q: "", species: "", city: "", gender: "", vaccinated: "", ageMin: "", ageMax: "", sort: "name" });
+
+  const filtered = useMemo(() => {
+    let list = [...pets];
+    const f = filters;
+    if (f.q) {
+      const q = f.q.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.breed.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+      );
+    }
+    if (f.species) list = list.filter((p) => p.species === f.species);
+    if (f.city) list = list.filter((p) => p.city === f.city);
+    if (f.gender) list = list.filter((p) => p.gender === f.gender);
+    if (f.vaccinated) list = list.filter((p) => String(p.vaccinated) === f.vaccinated);
+    if (f.ageMin) list = list.filter((p) => p.age >= Number(f.ageMin));
+    if (f.ageMax) list = list.filter((p) => p.age <= Number(f.ageMax));
+    const cmp = {
+      name: (a, b) => a.name.localeCompare(b.name),
+      age: (a, b) => a.age - b.age,
+      city: (a, b) => a.city.localeCompare(b.city),
+    }[f.sort];
+    return list.sort(cmp);
+  }, [pets, filters]);
+
+  const toggleFav = (id) =>
+    setFav((F) => (F.includes(id) ? F.filter((x) => x !== id) : [...F, id]));
+
+  const openDetails = (pet, wantAppt = false) => {
+    setDetail(pet);
+    setOpenAppt(wantAppt);
+  };
+
+  const confirmAppt = (payload) => {
+    setAppt((A) => [{ id: uid(), ...payload }, ...A]);
+    setToast("Appointment booked!");
+    setTimeout(() => setToast(""), 2500);
+  };
+
+  const favPets = pets.filter((p) => fav.includes(p.id));
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white text-gray-900">
+      <Header current={page} setCurrent={setPage} />
+
+      {page === "home" && (
+        <>
+          <Hero goAdopt={() => setPage("adopt")} />
+          <Section
+            title="Why adopt with us?"
+            subtitle="Trusted by pet lovers across Noida, Ghaziabad & Delhi NCR."
+          >
+            <div className="grid md:grid-cols-3 gap-4">
+              <Stat label="Pets rehomed" value="500+" Icon={Heart} />
+              <Stat label="Verified shelters" value="30+" Icon={PawPrint} />
+              <Stat label="Cities covered" value="4" Icon={MapPin} />
+            </div>
+          </Section>
+          <Services />
+          <Blog />
+          <Section title="Favorites" subtitle="Your short-listed cuties.">
+            {favPets.length ? (
+              <div className="grid md:grid-cols-3 gap-4">
+                {favPets.map((p) => (
+                  <PetCard key={p.id} pet={p} onOpen={openDetails} toggleFav={toggleFav} isFav={fav.includes(p.id)} />
+                ))}
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl border bg-white text-sm text-gray-600">
+                No favorites yet. Tap the heart on any pet card to save.
+              </div>
+            )}
+          </Section>
+        </>
+      )}
+
+      {page === "adopt" && (
+        <Section title="Adopt a pet" subtitle="Filter and find your perfect match.">
+          <div className="space-y-4">
+            <Filters filters={filters} setFilters={setFilters} total={filtered.length} reset={resetFilters} />
+            <div className="grid md:grid-cols-3 gap-4">
+              {filtered.map((p) => (
+                <PetCard key={p.id} pet={p} onOpen={openDetails} toggleFav={toggleFav} isFav={fav.includes(p.id)} />
+              ))}
+            </div>
+            {!filtered.length && (
+              <div className="p-5 rounded-2xl border bg-white text-sm text-gray-600">
+                No pets match your filters. Try resetting filters.
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
+      {page === "services" && <Services />}
+      {page === "blog" && <Blog />}
+      {page === "contact" && <Contact />}
+      {page === "admin" && <Admin addPet={(p) => setPets((L) => [p, ...L])} />}
+
+      <footer className="mt-10 border-t">
+        <div className="max-w-6xl mx-auto px-4 py-6 text-sm flex flex-col md:flex-row gap-3 md:gap-6 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <PawPrint className="text-pink-600" />
+            <span className="font-semibold">The Pet Cure</span>
+          </div>
+          <div className="text-gray-600">© {new Date().getFullYear()} The Pet Cure. All rights reserved.</div>
+          <div className="flex items-center gap-3">
+            <a className="underline" href="#" onClick={(e) => { e.preventDefault(); setPage("contact"); }}>Support</a>
+            <a className="underline" href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Back to top</a>
+          </div>
+        </div>
+      </footer>
+
+      <Modal open={!!detail} onClose={() => setDetail(null)}>
+        {detail && (
+          <div className="grid md:grid-cols-2 gap-5">
+            <img src={detail.image} alt={detail.name} className="rounded-xl border object-cover w-full h-64" />
+            <div>
+              <h3 className="text-xl font-semibold flex items-center gap-2">
+                {(speciesIcons[detail.species] || PawPrint)({ size: 18, className: "text-pink-600" })}
+                {detail.name}
+              </h3>
+              <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-700">
+                <Badge>{detail.species}</Badge>
+                <Badge>{detail.breed}</Badge>
+                <Badge>{detail.gender}</Badge>
+                <Badge>{detail.age} yr</Badge>
+                <Badge className={detail.vaccinated ? "border-green-300 text-green-700" : "border-amber-300 text-amber-700"}>
+                  {detail.vaccinated ? "Vaccinated" : "Not vaccinated"}
+                </Badge>
+                <Badge className="flex items-center gap-1"><MapPin size={14} /> {detail.city}</Badge>
+              </div>
+              <p className="text-sm text-gray-700 mt-3">{detail.description}</p>
+              <div className="mt-4 flex gap-2">
+                <Button onClick={() => setOpenAppt(true)} icon={Calendar} className="bg-pink-600 text-white hover:bg-pink-700">
+                  Book appointment
+                </Button>
+                <Button onClick={() => window.open("mailto:hello@thepetcure.in")}>Ask a question</Button>
+              </div>
+            </div>
+            {openAppt && (
+              <AppointmentForm
+                pet={detail}
+                onConfirm={(payload) => {
+                  confirmAppt(payload);
+                  setOpenAppt(false);
+                  setDetail(null);
+                }}
+              />
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <Toast show={!!toast} text={toast} />
+    </div>
+  );
+}
+
+function AppointmentForm({ pet, onConfirm }) {
+  const [form, setForm] = useState({ name: "", phone: "", date: "", time: "" });
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.phone || !form.date || !form.time) return alert("Fill all fields");
+    onConfirm({ ...form, petId: pet.id, petName: pet.name, createdAt: new Date().toISOString() });
+  };
+
+  return (
+    <div className="md:col-span-2 p-4 rounded-2xl border bg-gray-50">
+      <h4 className="font-semibold mb-3">Book appointment for {pet.name}</h4>
+      <form onSubmit={submit} className="grid md:grid-cols-4 gap-3">
+        <input className="border rounded-xl px-3 py-2" placeholder="Your name" value={form.name} onChange={(e) => set("name", e.target.value)} />
+        <input className="border rounded-xl px-3 py-2" placeholder="Phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+        <input type="date" className="border rounded-xl px-3 py-2" value={form.date} onChange={(e) => set("date", e.target.value)} />
+        <input type="time" className="border rounded-xl px-3 py-2" value={form.time} onChange={(e) => set("time", e.target.value)} />
+        <div className="md:col-span-4 flex justify-end">
+          <Button className="bg-pink-600 text-white hover:bg-pink-700" icon={CheckCircle2}>
+            Confirm
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
